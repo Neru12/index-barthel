@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Indeks Barthel Digital</title>
+<style>
+:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);
+--bg:#f3f6fb;--card:#fff;--text:#1d2433;--muted:#5d6779;--line:#dde3ee;--opt:#f7f9fc}
+:root[data-theme="dark"]{--bg:#141a26;--card:#1d2536;--text:#eef2fa;--muted:#a3adc2;--line:#2f3a52;--opt:#252e44}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#141a26;--card:#1d2536;--text:#eef2fa;--muted:#a3adc2;--line:#2f3a52;--opt:#252e44}}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*,*:before,*:after{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font-family:"Nunito","Segoe UI",system-ui,sans-serif;line-height:1.45}
+.wrap{max-width:640px;margin:0 auto;padding:16px 14px 150px}
+h1{font-size:1.6rem;margin:6px 0 2px;font-weight:800}
+.sub{color:var(--muted);margin:0 0 16px;font-size:.95rem}
+.pt{background:var(--card);border-radius:16px;padding:14px;margin-bottom:16px;display:grid;grid-template-columns:1fr 1fr;gap:10px;border:1px solid var(--line)}
+.pt label{font-size:.8rem;color:var(--muted);font-weight:700;display:block;margin-bottom:3px}
+.pt input{width:100%;padding:10px;border-radius:10px;border:1.5px solid var(--line);background:var(--opt);color:var(--text);font:inherit}
+.pt .full{grid-column:1/-1}
+.item{background:var(--card);border-radius:18px;margin-bottom:14px;border:1px solid var(--line);overflow:hidden}
+.hd{display:flex;align-items:center;gap:10px;padding:12px 14px;color:#fff;background:var(--c)}
+.hd .ic{font-size:1.5rem}
+.hd b{font-size:1.05rem;flex:1}
+.hd .sc{background:rgba(255,255,255,.25);padding:3px 11px;border-radius:99px;font-weight:800;font-size:.9rem}
+.opts{padding:10px;display:grid;gap:8px}
+.o{display:flex;align-items:center;gap:10px;padding:11px 12px;border:2px solid var(--line);border-radius:12px;background:var(--opt);cursor:pointer;font-size:.95rem}
+.o input{position:absolute;opacity:0;pointer-events:none}
+.o .pts{min-width:34px;height:34px;border-radius:10px;display:grid;place-items:center;font-weight:800;color:#fff;background:var(--c)}
+.o:has(input:checked){border-color:var(--c);background:color-mix(in srgb,var(--c) 14%,var(--card))}
+.o:has(input:focus-visible){outline:3px solid var(--c);outline-offset:2px}
+.o small{display:block;color:var(--muted);font-size:.8rem}
+.bar{position:fixed;left:0;right:0;bottom:0;background:var(--card);border-top:1px solid var(--line);padding:10px 14px calc(10px + env(safe-area-inset-bottom,0px));box-shadow:0 -6px 20px rgba(0,0,0,.08)}
+.bi{max-width:640px;margin:0 auto}
+.top{display:flex;align-items:center;gap:12px}
+.big{font-size:2rem;font-weight:800;min-width:96px;color:var(--rc)}
+.big span{font-size:1rem;color:var(--muted);font-weight:700}
+.lv{flex:1}
+.lv b{display:block;color:var(--rc);font-size:1.02rem}
+.track{height:10px;background:var(--line);border-radius:99px;overflow:hidden;margin-top:6px}
+.fill{height:100%;width:0;background:var(--rc);border-radius:99px;transition:width .3s}
+.act{display:flex;gap:8px;margin-top:9px}
+button{flex:1;padding:10px;border:0;border-radius:12px;font:inherit;font-weight:800;cursor:pointer;color:#fff;background:#4f46e5}
+button.g{background:var(--line);color:var(--text)}
+.prog{font-size:.8rem;color:var(--muted);margin-top:6px}
+#res{display:none;background:var(--card);border:2px solid var(--rc);border-radius:18px;padding:14px;margin-bottom:14px;white-space:pre-wrap}
+</style>
+</head>
+<body>
+<div class="wrap">
+<h1>Indeks Barthel</h1>
+<p class="sub">Penilaian kemandirian aktivitas sehari-hari (ADL). Pilih satu jawaban di setiap item, skor dihitung otomatis.</p>
+<div class="pt">
+<div class="full"><label for="nm">Nama pasien</label><input id="nm" placeholder="Contoh: Tn. S"></div>
+<div><label for="um">Usia</label><input id="um" type="number" inputmode="numeric" placeholder="tahun"></div>
+<div><label for="tg">Tanggal</label><input id="tg" type="date"></div>
+</div>
+<div id="list"></div>
+<div id="res"></div>
+</div>
+<div class="bar"><div class="bi">
+<div class="top"><div class="big"><span id="sc">0</span><span> / 100</span></div>
+<div class="lv"><b id="lv">Belum diisi</b><div class="track"><div class="fill" id="fl"></div></div></div></div>
+<div class="prog" id="pg">0 dari 10 item terisi</div>
+<div class="act"><button class="g" id="rs">Ulangi</button><button id="sm">Lihat hasil</button></div>
+</div></div>
+<script>
+var D=[
+["Makan","🍽️","#f97316",[[0,"Tidak mampu","Harus disuapi"],[5,"Perlu bantuan","Misal memotong makanan, mengoles"],[10,"Mandiri","Mampu makan sendiri"]]],
+["Mandi","🚿","#06b6d4",[[0,"Tergantung orang lain",""],[5,"Mandiri","Mandi sendiri"]]],
+["Perawatan diri","🪥","#8b5cf6",[[0,"Perlu bantuan","Cuci muka, sisir, sikat gigi, cukur"],[5,"Mandiri","Semua dilakukan sendiri"]]],
+["Berpakaian","👕","#ec4899",[[0,"Tergantung orang lain",""],[5,"Sebagian dibantu","Minimal setengah dikerjakan sendiri"],[10,"Mandiri","Termasuk kancing, resleting, tali"]]],
+["Buang air besar (BAB)","🚽","#a16207",[[0,"Inkontinensia","Atau perlu enema"],[5,"Kadang inkontinensia","Maksimal 1x/minggu"],[10,"Kontinen","Terkontrol"]]],
+["Buang air kecil (BAK)","💧","#0ea5e9",[[0,"Inkontinensia","Atau memakai kateter dan tak mampu mengurus"],[5,"Kadang inkontinensia","Maksimal 1x/24 jam"],[10,"Kontinen","Terkontrol"]]],
+["Penggunaan toilet","🚻","#14b8a6",[[0,"Tergantung orang lain",""],[5,"Perlu bantuan sebagian","Keseimbangan, pakaian, cebok"],[10,"Mandiri","Naik, turun, merapikan pakaian"]]],
+["Transfer","🛏️","#22c55e",[[0,"Tidak mampu","Tidak bisa duduk seimbang"],[5,"Bantuan besar","1-2 orang, masih bisa duduk"],[10,"Bantuan minimal","Cukup 1 orang atau aba-aba"],[15,"Mandiri","Kursi/kursi roda ke tempat tidur"]]],
+["Mobilitas","🚶","#3b82f6",[[0,"Immobile","Atau berjalan kurang dari 50 m"],[5,"Kursi roda mandiri","Lebih dari 50 m"],[10,"Jalan dibantu 1 orang","Lebih dari 50 m"],[15,"Mandiri","Boleh dengan alat bantu jalan"]]],
+["Naik turun tangga","🪜","#e11d48",[[0,"Tidak mampu",""],[5,"Perlu bantuan","Fisik atau alat bantu"],[10,"Mandiri","Naik turun sendiri"]]]
+];
+var L=document.getElementById("list"),h="";
+D.forEach(function(d,i){
+h+='<section class="item" style="--c:'+d[2]+'"><div class="hd"><span class="ic">'+d[1]+'</span><b>'+(i+1)+'. '+d[0]+'</b><span class="sc" id="s'+i+'">-</span></div><div class="opts">';
+d[3].forEach(function(o,j){h+='<label class="o"><input type="radio" name="q'+i+'" value="'+o[0]+'"><span class="pts">'+o[0]+'</span><span>'+o[1]+(o[2]?'<small>'+o[2]+'</small>':'')+'</span></label>';});
+h+='</div></section>';});
+L.innerHTML=h;
+document.getElementById("tg").valueAsDate=new Date();
+function lvl(s){
+if(s===100)return["Mandiri","#16a34a"];
+if(s>=91)return["Ketergantungan ringan","#65a30d"];
+if(s>=62)return["Ketergantungan sedang","#eab308"];
+if(s>=21)return["Ketergantungan berat","#f97316"];
+return["Ketergantungan total","#dc2626"];}
+function calc(){
+var t=0,n=0;
+D.forEach(function(d,i){var c=document.querySelector('input[name="q'+i+'"]:checked');var e=document.getElementById("s"+i);
+if(c){t+=+c.value;n++;e.textContent=c.value;}else e.textContent="-";});
+var r=lvl(t);
+document.documentElement.style.setProperty("--rc",n?r[1]:"#64748b");
+document.getElementById("sc").textContent=t;
+document.getElementById("lv").textContent=n?r[0]:"Belum diisi";
+document.getElementById("fl").style.width=t+"%";
+document.getElementById("pg").textContent=n+" dari 10 item terisi";
+return[t,n,r];}
+L.addEventListener("change",calc);
+document.getElementById("rs").onclick=function(){
+document.querySelectorAll("input[type=radio]").forEach(function(x){x.checked=false});
+document.getElementById("res").style.display="none";calc();window.scrollTo(0,0);};
+document.getElementById("sm").onclick=function(){
+var c=calc(),b=document.getElementById("res");
+if(c[1]<10){var m=[];D.forEach(function(d,i){if(!document.querySelector('input[name="q'+i+'"]:checked'))m.push(i+1)});
+b.style.display="block";b.textContent="Masih ada item yang belum diisi: nomor "+m.join(", ")+".";
+document.querySelector('input[name="q'+(m[0]-1)+'"]').closest(".item").scrollIntoView({behavior:"smooth",block:"center"});return;}
+var s="HASIL INDEKS BARTHEL\n";
+s+="Nama: "+(document.getElementById("nm").value||"-")+"   Usia: "+(document.getElementById("um").value||"-")+"\n";
+s+="Tanggal: "+document.getElementById("tg").value+"\n\n";
+D.forEach(function(d,i){var k=document.querySelector('input[name="q'+i+'"]:checked');s+=(i+1)+". "+d[0]+": "+k.value+"\n";});
+s+="\nTOTAL: "+c[0]+"/100\nKategori: "+c[2][0];
+b.style.display="block";b.textContent=s;b.scrollIntoView({behavior:"smooth",block:"center"});};
+calc();
+</script>
+</body>
+</html>
